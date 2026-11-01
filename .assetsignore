@@ -1,0 +1,5 @@
+# files that stay out of the published site
+README.md
+.DS_Store
+.git
+.gitignore

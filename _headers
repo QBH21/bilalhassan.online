@@ -1,0 +1,6 @@
+# Cloudflare reads this file; other hosts ignore it.
+/assets/*
+  Cache-Control: public, max-age=604800
+/assets/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
