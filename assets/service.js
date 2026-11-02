@@ -9,6 +9,12 @@
   const css = (el, k, v) => el.style.setProperty(k, v);
   html.classList.add('sjs');
 
+  /* after the first paint, the sections below the first screen are shown one per frame (see service.css);
+     a link straight to a section (#contact) shows them all at once, so it lands where it should */
+  const later = $$('main > section:not(.s-hero), .foot');
+  const showNext = () => { const s = later.shift(); if (s) { s.classList.add('shown'); requestAnimationFrame(() => setTimeout(showNext)); } };
+  if (location.hash) html.classList.add('cv-off');
+
   /* menu */
   const nav = $('#nav'), menuBtn = $('#menuBtn'), sheet = $('#sheet');
   const setMenu = open => {
@@ -45,9 +51,15 @@
     css(nav, '--sp', (max > 0 ? scrollY / max : 0).toFixed(4));
     tilts.forEach((el, i) => css(el, '--rv', rv[i].toFixed(3)));
   };
-  addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-  addEventListener('resize', onScroll);
-  onScroll();
+  const queue = () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } };
+  addEventListener('scroll', queue, { passive: true });
+  addEventListener('resize', queue);
+  /* the first read waits until the browser has laid the page out by itself (just before it paints);
+     reading layout any earlier forces an extra full layout while the page is still loading */
+  if ('ResizeObserver' in window) {
+    const first = new ResizeObserver(() => { first.disconnect(); onScroll(); requestAnimationFrame(() => setTimeout(showNext)); });
+    first.observe(html);
+  } else { onScroll(); showNext(); }
 
   /* cards and closing headings rise once, the first time they come into view */
   const rises = $$('[data-rise], .rise');

@@ -41,8 +41,11 @@ p{text-wrap:pretty}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .skip{position:absolute;left:-9999px;top:0;z-index:500;background:var(--ink);color:#fff;font-weight:700;padding:12px 18px;border-radius:0 0 12px 0}
 .skip:focus{left:0}
-.live-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--green);animation:livepulse 2.4s ease-out infinite}
-@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(40,107,75,.5)}70%,100%{box-shadow:0 0 0 8px rgba(40,107,75,0)}}
+/* the pulse is a ring under the dot that grows and fades: transform and opacity only, so it runs off the main thread */
+.live-dot{position:relative;width:8px;height:8px;flex:none}
+.live-dot::before,.live-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--green)}
+.live-dot::before{background:rgba(40,107,75,.5);animation:livepulse 2.4s ease-out infinite}
+@keyframes livepulse{70%,100%{transform:scale(3);opacity:0}}
 
 /* buttons */
 .btn{position:relative;display:inline-flex;align-items:center;gap:10px;font:700 .92rem/1 var(--font);padding:16px 22px;border-radius:999px;transition:background .25s,color .25s,box-shadow .25s,transform .35s var(--ease)}
@@ -233,14 +236,19 @@ a.pcard:hover{transform:translateY(-4px);box-shadow:0 1px 2px rgba(40,60,90,.04)
 .art-pr .pr-diff i{color:#9FD9B9}
 .art-pr .pr-diff em{color:#F2B8A8}
 
-/* scroll motion; html.sjs is set by service.js, so nothing is hidden if the script never loads */
+/* scroll motion; html.sjs is set by service.js, so nothing is hidden if the script never loads.
+   The cards' small offset hides nothing, so it is on from the first paint and they never jump when the script starts.
+   Transitions sit on the .in state only: switching a start position on never sets off a movement of its own. */
 html.sjs:not(.reduce) [data-tilt]{transform:perspective(1400px) translateY(calc((1 - var(--rv,1)) * 46px)) rotateX(calc((1 - var(--rv,1)) * 11deg));transform-origin:50% 0}
-html.sjs:not(.reduce) [data-rise]{transform:translateY(40px);transition:transform 1.1s var(--ease);transition-delay:calc(var(--i,0) * 90ms)}
-html.sjs:not(.reduce) [data-rise].in{transform:none}
-html.sjs:not(.reduce) .rise .w > span{transform:translateY(110%) rotate(5deg);transition:transform .95s var(--ease);transition-delay:calc(var(--i,0) * 70ms)}
-html.sjs:not(.reduce) .rise.in .w > span{transform:none}
-html.sjs:not(.reduce) .rise .tdot{transform:scale(0);transition:transform .7s var(--spring) .45s}
-html.sjs:not(.reduce) .rise.in .tdot{transform:none}
+html.js:not(.reduce) [data-rise]{transform:translateY(40px)}
+html.js:not(.reduce) [data-rise].in{transform:none;transition:transform 1.1s var(--ease);transition-delay:calc(var(--i,0) * 90ms)}
+html.sjs:not(.reduce) .rise .w > span{transform:translateY(110%) rotate(5deg)}
+html.sjs:not(.reduce) .rise.in .w > span{transform:none;transition:transform .95s var(--ease);transition-delay:calc(var(--i,0) * 70ms)}
+html.sjs:not(.reduce) .rise .tdot{transform:scale(0)}
+html.sjs:not(.reduce) .rise.in .tdot{transform:none;transition:transform .7s var(--spring) .45s}
+/* the first render only lays out the top of the page; service.js then shows the sections below one per frame (.shown),
+   so no single task has to lay out the whole page. Without the script, they still render as they scroll into view. */
+html.js:not(.cv-off) main > section:not(.s-hero):not(.shown),html.js:not(.cv-off) .foot:not(.shown){content-visibility:auto;contain-intrinsic-size:auto 900px}
 .s-cta h2 .w{display:inline-block;overflow:hidden;vertical-align:top;padding:.04em .02em .1em;margin:-.04em -.02em -.1em}
 .s-cta h2 .w > span{display:inline-block}
 

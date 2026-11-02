@@ -220,6 +220,7 @@
 
 <link rel="preload" href="assets/fonts/quicksand.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="assets/fonts/martian-mono.woff2" as="font" type="font/woff2" crossorigin />
 
 <style>
   /* ============================================================
@@ -235,7 +236,6 @@
   /* fonts are 'optional': used if they arrive in time, otherwise these size-matched stand-ins stay for that visit, so text never jumps */
   @font-face{font-family:'Nunito Fallback';src:local('Arial'),local('Arimo'),local('Liberation Sans'),local('Roboto');size-adjust:101.33%;ascent-override:99.77%;descent-override:34.84%;line-gap-override:0%}
   @font-face{font-family:'Quicksand Fallback';src:local('Arial'),local('Arimo'),local('Liberation Sans'),local('Roboto');size-adjust:110.5%;ascent-override:90.5%;descent-override:22.62%;line-gap-override:0%}
-  @property --pin { syntax: '<number>'; inherits: false; initial-value: 1; }
 
   :root{
     --bg:#F7F2E9; --card:#FDFBF4; --ink:#2A3542; --ink-2:#55606D;
@@ -278,8 +278,11 @@
   .skip:focus{left:0}
   .grain{position:fixed;inset:0;z-index:250;pointer-events:none;opacity:.045;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-  .live-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--green);animation:livepulse 2.4s ease-out infinite}
-  @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(47,125,87,.5)}70%,100%{box-shadow:0 0 0 8px rgba(47,125,87,0)}}
+  /* the pulse is a ring under the dot that grows and fades: transform and opacity only, so it runs off the main thread */
+  .live-dot{position:relative;width:8px;height:8px;flex:none}
+  .live-dot::before,.live-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--green)}
+  .live-dot::before{background:rgba(47,125,87,.5);animation:livepulse 2.4s ease-out infinite}
+  @keyframes livepulse{70%,100%{transform:scale(3);opacity:0}}
 
   /* ---------- headline reveals: words rise through a mask (JS splits; without JS nothing is hidden) */
   .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.12em;margin-bottom:-.12em}
@@ -377,16 +380,18 @@
   .scroll-hint i{position:relative;width:46px;height:1.5px;background:var(--hairline);overflow:hidden}
   .scroll-hint i::after{content:"";position:absolute;inset:0;background:var(--blue);transform:translateX(-100%);animation:hint 2.2s var(--ease) infinite}
   @keyframes hint{60%,100%{transform:translateX(100%)}}
-  .speed{font:500 11px/1.5 var(--mono);color:var(--ink-2);text-align:right;opacity:0;transform:translateY(6px);transition:opacity .6s,transform .6s var(--ease)}
+  /* the speed line keeps one line of height while it waits for its text, so filling it in moves nothing */
+  .speed{min-height:1.5em;font:500 11px/1.5 var(--mono);color:var(--ink-2);text-align:right;opacity:0;transform:translateY(6px);transition:opacity .6s,transform .6s var(--ease)}
   .speed.in{opacity:1;transform:none}
   .speed b{color:var(--blue-deep);font-weight:500}
   .hero-top,.hero-copy,.hero-foot{position:relative;z-index:2;opacity:calc(1 - var(--exit,0));transform:translateY(calc(var(--exit,0) * -24px))}
   html.js:not(.reduce) .hero-copy > *{animation:fadeUp .9s var(--ease) both;animation-delay:calc(.55s + var(--d,0) * 90ms)}
   @keyframes fadeUp{from{transform:translateY(18px)}}
   .portal{position:absolute;inset:0;z-index:3;pointer-events:none;background:var(--blue);visibility:hidden;
-    clip-path:circle(calc(var(--pr,0px) * var(--pin)) at var(--pcx,50%) var(--pcy,50%))}
+    clip-path:circle(var(--pr,0px) at var(--pcx,50%) var(--pcy,50%));transform-origin:var(--pcx,50%) var(--pcy,50%)}
+  /* the dot pops in by scaling the whole layer around its centre (a transform, so it runs off the main thread) */
   html.fonts-ok .portal{visibility:visible;animation:pin .9s var(--spring) .95s backwards}
-  @keyframes pin{from{--pin:0}to{--pin:1}}
+  @keyframes pin{from{transform:scale(0)}}
   html:not(.js) .portal,html.reduce .portal{display:none}
   /* easter egg: the period in the headline is a button */
   .shipdot{display:inline;font:inherit;color:inherit;padding:0;line-height:inherit;cursor:pointer;transition:color .2s}
@@ -592,8 +597,10 @@
   .bp .acc{stroke:#F2ECE1}
   html:not(.js) .bp *,html.reduce .bp *{stroke-dashoffset:0}
   .wcard.in .bp *{stroke-dashoffset:0;transition:stroke-dashoffset 1.6s var(--ease);transition-delay:calc(var(--d,0) * 110ms)}
-  .pulse{width:8px;height:8px;border-radius:50%;background:#F5B841;animation:amber 2.2s ease-out infinite}
-  @keyframes amber{0%{box-shadow:0 0 0 0 rgba(245,184,65,.55)}70%,100%{box-shadow:0 0 0 8px rgba(245,184,65,0)}}
+  .pulse{position:relative;width:8px;height:8px}
+  .pulse::before,.pulse::after{content:"";position:absolute;inset:0;border-radius:50%;background:#F5B841}
+  .pulse::before{background:rgba(245,184,65,.55);animation:amber 2.2s ease-out infinite}
+  @keyframes amber{70%,100%{transform:scale(3);opacity:0}}
   @media (max-width:860px){
     html.js:not(.reduce) .wcard{position:relative;top:auto}
     .wcard-in{grid-template-columns:1fr;min-height:0;gap:18px;align-items:start}
@@ -869,7 +876,7 @@
           <p class="m-logo">Kavoor</p>
           <nav class="m-tools"><a class="m-ico m-search" href="#" tabindex="-1">Search</a> <a class="m-ico m-bag" href="#" tabindex="-1">Bag (0)</a></nav>
         </header>
-        <figure class="m-hero" data-wf="img · hero photo"><img data-src="assets/kavoor-photo.webp" width="780" height="829" alt="Two Kavoor perfume bottles on white linen" decoding="async" /></figure>
+        <figure class="m-hero" data-wf="img · hero photo"><img data-src="assets/kavoor-photo.webp" data-srcset="assets/kavoor-photo-400.webp 400w, assets/kavoor-photo-480.webp 480w, assets/kavoor-photo.webp 780w" sizes="(max-width: 860px) 58vw, 320px" width="780" height="829" alt="Two Kavoor perfume bottles on white linen" decoding="async" /></figure>
         <div class="m-cta" data-wf="buttons">
           <button class="m-btn" type="button" tabindex="-1">Discover the collection</button>
           <button class="m-btn m-btn-2" type="button" tabindex="-1">Our story</button>
@@ -895,7 +902,7 @@
             <div class="wlink"><a class="btn btn-soft" href="https://kavoor.store" target="_blank" rel="noopener noreferrer">Visit kavoor.store<span class="sr-only"> (opens in a new tab)</span> <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a></div>
           </div>
           <figure class="wmedia wm-kavoor">
-            <img src="assets/kavoor-photo.webp" width="360" height="383" alt="Kavoor's homepage photo: two perfume bottles, Daymark and Rush Theory, on white linen." loading="lazy" decoding="async" />
+            <img src="assets/kavoor-photo.webp" srcset="assets/kavoor-photo-400.webp 400w, assets/kavoor-photo-480.webp 480w, assets/kavoor-photo.webp 780w" sizes="(max-width: 860px) calc(100vw - 85px), 520px" width="360" height="383" alt="Kavoor's homepage photo: two perfume bottles, Daymark and Rush Theory, on white linen." loading="lazy" decoding="async" />
             <figcaption class="wtag"><span class="live-dot" aria-hidden="true"></span>kavoor.store</figcaption>
           </figure>
         </div></article>
@@ -968,42 +975,42 @@
       <div class="lab-track">
         <article class="lcard">
           <span class="lplat">iOS and Android</span>
-          <figure class="lshot"><img src="assets/apps/masjid-pro.webp" width="800" height="500" alt="Masjid Pro on two phones, in its Sand and Dark themes: salah times grouped by masjid and by prayer." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/masjid-pro.webp" srcset="assets/apps/masjid-pro-400.webp 400w, assets/apps/masjid-pro.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="Masjid Pro on two phones, in its Sand and Dark themes: salah times grouped by masjid and by prayer." loading="lazy" decoding="async" /></figure>
           <h3>Masjid Pro</h3>
           <p>Each masjid's own salah times, kept current by its moderators. Add the masjids you pray at and see every schedule in one place.</p>
           <div class="lchips"><span>Expo</span><span>React Native</span><span>Firebase</span><span>TypeScript</span></div>
         </article>
         <article class="lcard">
           <span class="lplat">iOS and Android</span>
-          <figure class="lshot"><img src="assets/apps/labayik-allah.webp" width="800" height="500" alt="Labayik Allah on two phones: choosing a Hajj type, and a progress screen at 25 percent." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/labayik-allah.webp" srcset="assets/apps/labayik-allah-400.webp 400w, assets/apps/labayik-allah.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="Labayik Allah on two phones: choosing a Hajj type, and a progress screen at 25 percent." loading="lazy" decoding="async" /></figure>
           <h3>Labayik Allah</h3>
           <p>A step-by-step Hajj companion that covers all three types of Hajj: Tamattu', Qiran and Ifrad.</p>
           <div class="lchips"><span>Expo</span><span>React Native</span></div>
         </article>
         <article class="lcard">
           <span class="lplat">Mobile and web</span>
-          <figure class="lshot"><img src="assets/apps/eterna.webp" width="800" height="500" alt="Eterna on two phones: today's prayers, and a calendar with Hijri and Gregorian dates side by side." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/eterna.webp" srcset="assets/apps/eterna-400.webp 400w, assets/apps/eterna.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="Eterna on two phones: today's prayers, and a calendar with Hijri and Gregorian dates side by side." loading="lazy" decoding="async" /></figure>
           <h3>Eterna</h3>
           <p>An Islamic calendar with Hijri and Gregorian dates side by side, plus goals to track through the month.</p>
           <div class="lchips"><span>Expo</span><span>Next.js</span><span>Turborepo</span></div>
         </article>
         <article class="lcard">
           <span class="lplat">Web</span>
-          <figure class="lshot"><img src="assets/apps/wildscan.webp" width="800" height="500" alt="WildScan's collection screen: a red fox, a blue tit, a monarch butterfly, a red squirrel and a toad, each with a rarity label." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/wildscan.webp" srcset="assets/apps/wildscan-400.webp 400w, assets/apps/wildscan.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="WildScan's collection screen: a red fox, a blue tit, a monarch butterfly, a red squirrel and a toad, each with a rarity label." loading="lazy" decoding="async" /></figure>
           <h3>WildScan</h3>
           <p>A real-life Pokémon. Photograph an animal in the wild, Gemini names the species, and your catch climbs a global leaderboard. Zoo photos don't count.</p>
           <div class="lchips"><span>Next.js</span><span>Gemini API</span></div>
         </article>
         <article class="lcard">
           <span class="lplat">iOS and Android</span>
-          <figure class="lshot"><img src="assets/apps/family-tracker.webp" width="800" height="500" alt="Family Tracker on two phones: the list of circles, and the sign-in screen." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/family-tracker.webp" srcset="assets/apps/family-tracker-400.webp 400w, assets/apps/family-tracker.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="Family Tracker on two phones: the list of circles, and the sign-in screen." loading="lazy" decoding="async" /></figure>
           <h3>Family Tracker</h3>
           <p>A location tracker for family and friends that runs on a Mac mini at home, not on someone else's cloud.</p>
           <div class="lchips"><span>Expo</span><span>Node</span><span>Postgres</span><span>MQTT</span><span>Docker</span></div>
         </article>
         <article class="lcard">
           <span class="lplat">iOS and Android</span>
-          <figure class="lshot"><img src="assets/apps/rebus-party.webp" width="800" height="500" alt="Rebus Party on a TV: a correct answer, with confetti over the puzzle." loading="lazy" decoding="async" /></figure>
+          <figure class="lshot"><img src="assets/apps/rebus-party.webp" srcset="assets/apps/rebus-party-400.webp 400w, assets/apps/rebus-party.webp 800w" sizes="(max-width: 860px) calc(80vw - 52px), (max-width: 1000px) 218px, (max-width: 1370px) calc(27vw - 52px), 318px" width="800" height="500" alt="Rebus Party on a TV: a correct answer, with confetti over the puzzle." loading="lazy" decoding="async" /></figure>
           <h3>Rebus Party</h3>
           <p>A party game of rebus puzzles, where pictures and letters spell out words and phrases.</p>
           <div class="lchips"><span>Expo</span><span>React Native</span></div>
@@ -1041,7 +1048,7 @@
       <div class="about-body">
         <h2 id="about-h">I'm Bilal. I've spent the last couple of years learning to build for the web properly, and people already use what I've made: two online stores, an invoicing app a local business runs every day, and Horizon, which I'm still building.</h2>
         <p>I'm doing my A-Levels at IVYAN in Islamabad alongside freelance work. Before that I did my IGCSEs at Beaconhouse Margalla and got an A*, an A and four Bs.</p>
-        <p>Outside client work, I'm a co-founder of <a href="https://www.food-book.app" target="_blank" rel="noopener noreferrer">FoodBook<span class="sr-only"> (opens in a new tab)</span></a>, a restaurant guide for Islamabad where diners write the reviews and the app shows which of your bank cards gets you a discount. It's free on <a href="https://apps.apple.com/app/id6749235329" target="_blank" rel="noopener noreferrer">iPhone<span class="sr-only"> (opens the App Store in a new tab)</span></a> and <a href="https://play.google.com/store/apps/details?id=com.binary.rewind.food.book" target="_blank" rel="noopener noreferrer">Android<span class="sr-only"> (opens Google Play in a new tab)</span></a>. I'm also an open source contributor: in November 2026 the owner of <a href="https://github.com/Qureshi-DH/hearth" target="_blank" rel="noopener noreferrer">Hearth<span class="sr-only"> (opens in a new tab)</span></a>, a self-hosted family safety app, merged <a href="https://github.com/Qureshi-DH/hearth/pull/32" target="_blank" rel="noopener noreferrer">my fix<span class="sr-only"> (opens in a new tab)</span></a> for three bugs in its iPhone map.</p>
+        <p>Outside client work, I'm a co-founder of <a href="https://www.food-book.app" target="_blank" rel="noopener noreferrer">FoodBook<span class="sr-only"> (opens in a new tab)</span></a>, a restaurant guide for Islamabad where diners write the reviews and the app shows which of your bank cards gets you a discount. It's free on <a href="https://apps.apple.com/app/id6749235329" target="_blank" rel="noopener noreferrer">iPhone<span class="sr-only"> (opens the App Store in a new tab)</span></a> and <a href="https://play.google.com/store/apps/details?id=com.binary.rewind.food.book" target="_blank" rel="noopener noreferrer">Android<span class="sr-only"> (opens Google Play in a new tab)</span></a>. I'm also an open source contributor: in November 2026 the owner of <a href="https://github.com/Qureshi-DH/hearth" target="_blank" rel="noopener noreferrer">Hearth<span class="sr-only"> (opens in a new tab)</span></a>, a self-hosted family safety app, merged <a href="https://github.com/Qureshi-DH/hearth/pull/32" target="_blank" rel="noopener noreferrer">my fix<span class="sr-only"> (opens in a new tab)</span></a> for three bugs in its iPhone map. I publish my own open source projects too, like <a href="https://github.com/QBH21/vitrine" target="_blank" rel="noopener noreferrer">Vitrine<span class="sr-only"> (opens in a new tab)</span></a>: it strips the bloatware out of Android TVs, speeds them up and gives them a lightweight home screen I built. On a budget TV with 1.3 GB of memory, it took free memory from 462 MB to 697 MB.</p>
       </div>
     </div>
   </section>
@@ -1111,529 +1118,557 @@
 </footer>
 <button id="dress" type="button" style="display:none;position:fixed;left:12px;top:12px;z-index:9999;padding:14px 22px;font:700 17px/1.2 system-ui,sans-serif;background:#2A3542;color:#fff;border:0;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer">Put the design back</button>
 
-<script>
-(() => {
-  'use strict';
-  const html = document.documentElement;
-  const reduce = html.classList.contains('reduce');
-  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  const desk = matchMedia('(min-width: 861px)');
-  const $ = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
-  const smooth = t => t * t * (3 - 2 * t);
-  const easeOut = t => 1 - Math.pow(1 - t, 3);
-  const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-  const css = (el, k, v) => el.style.setProperty(k, v);
-  const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+<script type="module">
+const html = document.documentElement;
+const reduce = html.classList.contains('reduce');
+const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const desk = matchMedia('(min-width: 861px)');
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
+const smooth = t => t * t * (3 - 2 * t);
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const css = (el, k, v) => el.style.setProperty(k, v);
+/* builds an element with DOM calls: the site's Trusted Types policy blocks HTML strings */
+const make = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 
-  /* always open at the true top, unless deep-linking to a section */
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  if (!location.hash) scrollTo(0, 0);
+/* always open at the true top, unless deep-linking to a section */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (!location.hash) scrollTo(0, 0);
 
-  /* ---------------------------------------------------------------- nav */
-  const nav = $('#nav'), menuBtn = $('#menuBtn'), sheet = $('#sheet');
-  const setMenu = open => {
-    html.classList.toggle('menu-open', open);
-    menuBtn.setAttribute('aria-expanded', String(open));
-    menuBtn.textContent = open ? 'Close' : 'Menu';
-    /* while the sheet covers the page, Tab and screen readers stay in the nav and the sheet */
-    $$('main, footer, .skip').forEach(el => { el.inert = open; });
-  };
-  menuBtn.addEventListener('click', () => setMenu(!html.classList.contains('menu-open')));
-  $$('a', sheet).forEach(a => a.addEventListener('click', () => setMenu(false)));
-  addEventListener('keydown', e => {
-    if (e.key !== 'Escape' || !html.classList.contains('menu-open')) return;
-    const inSheet = sheet.contains(document.activeElement);
-    setMenu(false);
-    if (inSheet) menuBtn.focus();
+/* --- nav */
+const nav = $('#nav'), menuBtn = $('#menuBtn'), sheet = $('#sheet');
+const setMenu = open => {
+  html.classList.toggle('menu-open', open);
+  menuBtn.setAttribute('aria-expanded', String(open));
+  menuBtn.textContent = open ? 'Close' : 'Menu';
+  /* while the sheet covers the page, Tab and screen readers stay in the nav and the sheet */
+  $$('main, footer, .skip').forEach(el => { el.inert = open; });
+};
+menuBtn.addEventListener('click', () => setMenu(!html.classList.contains('menu-open')));
+$$('a', sheet).forEach(a => a.addEventListener('click', () => setMenu(false)));
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || !html.classList.contains('menu-open')) return;
+  const inSheet = sheet.contains(document.activeElement);
+  setMenu(false);
+  if (inSheet) menuBtn.focus();
+});
+desk.addEventListener('change', e => { if (e.matches) setMenu(false); });
+$$('a[href="#top"]').forEach(a => a.addEventListener('click', e => {
+  e.preventDefault();
+  scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+  if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  /* from the footer, keyboard focus goes back up with the page */
+  if (!a.closest('#nav')) { const h = $('#hero-h'); h.tabIndex = -1; h.focus({ preventScroll: true }); }
+}));
+
+/* --- split words (headings keep their full text as the label) */
+const split = (el, cls) => {
+  const text = el.textContent.replace(/\s+/g, ' ').trim();
+  const parts = [make('span', 'sr-only', text)];
+  text.split(' ').forEach((w, i) => {
+    const s = make('span', cls);
+    s.setAttribute('aria-hidden', 'true');
+    css(s, '--i', i);
+    s.append(make('span', '', w));
+    if (i) parts.push(' ');
+    parts.push(s);
   });
-  desk.addEventListener('change', e => { if (e.matches) setMenu(false); });
-  $$('a[href="#top"]').forEach(a => a.addEventListener('click', e => {
-    e.preventDefault();
-    scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
-    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
-    /* from the footer, keyboard focus goes back up with the page */
-    if (!a.closest('#nav')) { const h = $('#hero-h'); h.tabIndex = -1; h.focus({ preventScroll: true }); }
-  }));
+  el.replaceChildren(...parts);
+  return $$('.' + cls, el);
+};
+if (!reduce) $$('.split').forEach(el => split(el, 'w'));
+/* reduced motion: the marquee's second copy (there for a seamless loop) is not needed */
+if (reduce) $$('.mq-track').forEach(t => { const seen = new Set(); [...t.children].forEach(c => { if (seen.has(c.textContent)) c.remove(); else seen.add(c.textContent); }); });
+const aboutH = $('#about-h');
+const words = reduce ? [] : split(aboutH, 'sw');
 
-  /* --------------------------------------------- split words (headings keep their full text as the label) */
-  const split = (el, cls) => {
-    const text = el.textContent.replace(/\s+/g, ' ').trim();
-    el.innerHTML = `<span class="sr-only">${esc(text)}</span>` + text.split(' ').map((w, i) => `<span class="${cls}" aria-hidden="true" style="--i:${i}"><span>${esc(w)}</span></span>`).join(' ');
-    return $$('.' + cls, el);
+/* --- reveals and counters */
+const countUp = (el, instant) => {
+  const b = $('b', el), to = parseFloat(b.dataset.to), dec = +(b.dataset.dec || 0);
+  if (instant) { b.textContent = to.toFixed(dec); return; }
+  const t0 = performance.now();
+  const tick = now => {
+    const t = clamp((now - t0) / 1500);
+    b.textContent = (to * easeOut(t)).toFixed(dec);
+    if (t < 1) requestAnimationFrame(tick);
   };
-  if (!reduce) $$('.split').forEach(el => split(el, 'w'));
-  /* reduced motion: the marquee's second copy (there for a seamless loop) is not needed */
-  if (reduce) $$('.mq-track').forEach(t => { const seen = new Set(); [...t.children].forEach(c => { if (seen.has(c.textContent)) c.remove(); else seen.add(c.textContent); }); });
-  const aboutH = $('#about-h');
-  const words = reduce ? [] : split(aboutH, 'sw');
+  requestAnimationFrame(tick);
+};
+const onIn = (el, instant) => { if (el.classList.contains('stat')) countUp(el, instant); };
+const watched = $$('.split, .reveal, .wcard, .stat, .portrait, .proc');
+if (reduce || !('IntersectionObserver' in window)) {
+  watched.forEach(el => { el.classList.add('in'); onIn(el, true); });
+} else {
+  $$('.stat b').forEach(b => { b.textContent = (0).toFixed(+(b.dataset.dec || 0)); });
+  const io = new IntersectionObserver(entries => entries.forEach(en => {
+    if (!en.isIntersecting) return;
+    en.target.classList.add('in');
+    io.unobserve(en.target);
+    onIn(en.target);
+  }), { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
+  watched.forEach(el => io.observe(el));
+}
 
-  /* -------------------------------------------------------- reveals and counters */
-  const countUp = (el, instant) => {
-    const b = $('b', el), to = parseFloat(b.dataset.to), dec = +(b.dataset.dec || 0);
-    if (instant) { b.textContent = to.toFixed(dec); return; }
-    const t0 = performance.now();
-    const tick = now => {
-      const t = clamp((now - t0) / 1500);
-      b.textContent = (to * easeOut(t)).toFixed(dec);
-      if (t < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
-  const onIn = (el, instant) => { if (el.classList.contains('stat')) countUp(el, instant); };
-  const watched = $$('.split, .reveal, .wcard, .stat, .portrait, .proc');
-  if (reduce || !('IntersectionObserver' in window)) {
-    watched.forEach(el => { el.classList.add('in'); onIn(el, true); });
-  } else {
-    $$('.stat b').forEach(b => { b.textContent = (0).toFixed(+(b.dataset.dec || 0)); });
-    const io = new IntersectionObserver(entries => entries.forEach(en => {
-      if (!en.isIntersecting) return;
-      en.target.classList.add('in');
-      io.unobserve(en.target);
-      onIn(en.target);
-    }), { threshold: 0.2, rootMargin: '0px 0px -6% 0px' });
-    watched.forEach(el => io.observe(el));
-  }
+/* --- scroll scenes
+   Each scene maps native scroll to a 0..1 progress (pinned: across its sticky
+   section; range: as an element crosses the viewport), eased towards the target
+   every frame and handed to a render function that only writes CSS variables. */
+const scenes = [];
+const scene = (el, render, o = {}) => {
+  const s = { el, render, measure: o.measure, range: !!o.range, start: o.start || 0.9, end: o.end || 0.3, lerp: o.lerp || 0.3, top: 0, h: 0, cur: -1 };
+  scenes.push(s);
+  return s;
+};
+let vh = 0, raf = 0, last = 0, docH = 0, spShown = '';
+const darkZones = [];
+const progressOf = (s, sy) => s.range
+  ? clamp((vh * s.start - (s.top - sy)) / (vh * (s.start - s.end)))
+  : clamp((sy - s.top) / Math.max(1, s.h - vh));
 
-  /* ---------------------------------------------------------------- scroll scenes
-     Each scene maps native scroll to a 0..1 progress (pinned: across its sticky
-     section; range: as an element crosses the viewport), eased towards the target
-     every frame and handed to a render function that only writes CSS variables. */
-  const scenes = [];
-  const scene = (el, render, o = {}) => {
-    const s = { el, render, measure: o.measure, range: !!o.range, start: o.start || 0.9, end: o.end || 0.3, lerp: o.lerp || 0.3, top: 0, h: 0, cur: -1 };
-    scenes.push(s);
-    return s;
-  };
-  let vh = innerHeight, raf = 0, last = 0, docH = 0, spShown = '';
-  const darkZones = [];
-  const progressOf = (s, sy) => s.range
-    ? clamp((vh * s.start - (s.top - sy)) / (vh * (s.start - s.end)))
-    : clamp((sy - s.top) / Math.max(1, s.h - vh));
-
-  function frame(now) {
-    const dt = last ? Math.min(50, now - last) : 16.7;
-    last = now;
-    const sy = scrollY;
-    let moving = false;
-    /* read layout before writing anything, so the browser never lays out twice in one frame */
-    const cardRects = cardsNear(sy) ? cards.map(c => c.getBoundingClientRect()) : null;
-    for (const s of scenes) {
-      const t = progressOf(s, sy);
-      if (s.cur === t) continue;
-      if (s.cur < 0) s.cur = t;
-      else {
-        s.cur += (t - s.cur) * (1 - Math.pow(1 - s.lerp, dt / 16.7));
-        if (Math.abs(t - s.cur) < 0.0005) s.cur = t;
-      }
-      if (s.cur !== t) moving = true;
-      s.render(s.cur);
+function frame(now) {
+  const dt = last ? Math.min(50, now - last) : 16.7;
+  last = now;
+  const sy = scrollY;
+  let moving = false;
+  /* read layout before writing anything, so the browser never lays out twice in one frame */
+  const cardRects = cardsNear(sy) ? cards.map(c => c.getBoundingClientRect()) : null;
+  for (const s of scenes) {
+    const t = progressOf(s, sy);
+    if (s.cur === t) continue;
+    if (s.cur < 0) s.cur = t;
+    else {
+      s.cur += (t - s.cur) * (1 - Math.pow(1 - s.lerp, dt / 16.7));
+      if (Math.abs(t - s.cur) < 0.0005) s.cur = t;
     }
-    if (cardRects) coverCards(cardRects);
-    navTheme(sy);
-    const sp = (sy / Math.max(1, docH - vh)).toFixed(4);
-    if (sp !== spShown) { spShown = sp; css(nav, '--sp', sp); }
-    raf = moving ? requestAnimationFrame(frame) : 0;
-    if (!moving) last = 0;
+    if (s.cur !== t) moving = true;
+    s.render(s.cur);
   }
-  const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  if (cardRects) coverCards(cardRects);
+  navTheme(sy);
+  const sp = (sy / Math.max(1, docH - vh)).toFixed(4);
+  if (sp !== spShown) { spShown = sp; css(nav, '--sp', sp); }
+  raf = moving ? requestAnimationFrame(frame) : 0;
+  if (!moving) last = 0;
+}
+/* vh stays 0 until the first measure, so no frame runs on numbers that don't exist yet */
+const kick = () => { if (!raf && vh) raf = requestAnimationFrame(frame); };
 
-  function measure() {
-    vh = innerHeight;
-    scenes.forEach(s => s.measure && s.measure());
-    const sy = scrollY;
-    scenes.forEach(s => { const r = s.el.getBoundingClientRect(); s.top = r.top + sy; s.h = r.height; s.cur = -1; });
-    darkZones.length = 0;
-    $$('[data-dark]').forEach(el => { const r = el.getBoundingClientRect(); darkZones.push([r.top + sy, r.bottom + sy]); });
-    measureCards();
-    docH = document.documentElement.scrollHeight;
-    kick();
+function measure() {
+  vh = innerHeight;
+  scenes.forEach(s => s.measure && s.measure());
+  const sy = scrollY;
+  scenes.forEach(s => { const r = s.el.getBoundingClientRect(); s.top = r.top + sy; s.h = r.height; s.cur = -1; });
+  darkZones.length = 0;
+  $$('[data-dark]').forEach(el => { const r = el.getBoundingClientRect(); darkZones.push([r.top + sy, r.bottom + sy]); });
+  measureCards();
+  docH = document.documentElement.scrollHeight;
+  kick();
+}
+
+/* --- 1 · hero: the wordmark zooms through its own full stop */
+const hero = $('#hero'), hStage = $('.stage', hero), wm = $('.wordmark'), dot = $('#wmDot'), portal = $('.portal');
+/* The text itself only zooms to 6x and fades out on the way; the blue circle (a cheap clip-path,
+   drawn separately) carries the rest. Scaling text to 60x makes Chrome run out of tile memory,
+   which leaves letters and other layers blank after you scroll back up. */
+const WM_MAX = 6;
+let r0 = 12, S = 60, heroP = 0, heroScene = null, wmState = '';
+if (!reduce) heroScene = scene(hero, p => {
+  heroP = p;
+  css(hStage, '--exit', smooth(clamp(p / 0.22)).toFixed(4));
+  const s = Math.pow(S, smooth(clamp((p - 0.02) / 0.9)));
+  css(wm, '--zs', Math.min(s, WM_MAX).toFixed(4));
+  css(wm, '--wmo', clamp(1 - (s - 3) / (WM_MAX - 3)).toFixed(3));
+  css(portal, '--pr', (r0 * s).toFixed(1) + 'px');
+  hStage.classList.toggle('done', p > 0.995);
+  const state = s >= WM_MAX ? 'gone' : s > 1.002 ? 'zooming' : '';
+  if (state !== wmState) {
+    wm.classList.toggle('zooming', state === 'zooming');
+    wm.classList.toggle('gone', state === 'gone');
+    wmState = state;
   }
+}, {
+  measure() {
+    html.classList.add('measuring');
+    const st = hStage.getBoundingClientRect(), w = wm.getBoundingClientRect(), d = dot.getBoundingClientRect();
+    html.classList.remove('measuring');
+    const cx = d.left + d.width / 2, cy = d.top + d.height / 2, px = cx - st.left, py = cy - st.top;
+    r0 = Math.max(2, d.width / 2);
+    css(wm, '--ox', (cx - w.left).toFixed(1) + 'px');
+    css(wm, '--oy', (cy - w.top).toFixed(1) + 'px');
+    css(portal, '--pcx', px.toFixed(1) + 'px');
+    css(portal, '--pcy', py.toFixed(1) + 'px');
+    const far = Math.max(Math.hypot(px, py), Math.hypot(st.width - px, py), Math.hypot(px, st.height - py), Math.hypot(st.width - px, st.height - py));
+    S = (far / r0) * 1.06;
+  }
+});
 
-  /* --- 1 · hero: the wordmark zooms through its own full stop */
-  const hero = $('#hero'), hStage = $('.stage', hero), wm = $('.wordmark'), dot = $('#wmDot'), portal = $('.portal');
-  /* The text itself only zooms to 6x and fades out on the way; the blue circle (a cheap clip-path,
-     drawn separately) carries the rest. Scaling text to 60x makes Chrome run out of tile memory,
-     which leaves letters and other layers blank after you scroll back up. */
-  const WM_MAX = 6;
-  let r0 = 12, S = 60, heroP = 0, heroScene = null, wmState = '';
-  if (!reduce) heroScene = scene(hero, p => {
-    heroP = p;
-    css(hStage, '--exit', smooth(clamp(p / 0.22)).toFixed(4));
-    const s = Math.pow(S, smooth(clamp((p - 0.02) / 0.9)));
-    css(wm, '--zs', Math.min(s, WM_MAX).toFixed(4));
-    css(wm, '--wmo', clamp(1 - (s - 3) / (WM_MAX - 3)).toFixed(3));
-    css(portal, '--pr', (r0 * s).toFixed(1) + 'px');
-    hStage.classList.toggle('done', p > 0.995);
-    const state = s >= WM_MAX ? 'gone' : s > 1.002 ? 'zooming' : '';
-    if (state !== wmState) {
-      wm.classList.toggle('zooming', state === 'zooming');
-      wm.classList.toggle('gone', state === 'gone');
-      wmState = state;
-    }
-  }, {
-    measure() {
-      html.classList.add('measuring');
-      const st = hStage.getBoundingClientRect(), w = wm.getBoundingClientRect(), d = dot.getBoundingClientRect();
-      html.classList.remove('measuring');
-      const cx = d.left + d.width / 2, cy = d.top + d.height / 2, px = cx - st.left, py = cy - st.top;
-      r0 = Math.max(2, d.width / 2);
-      css(wm, '--ox', (cx - w.left).toFixed(1) + 'px');
-      css(wm, '--oy', (cy - w.top).toFixed(1) + 'px');
-      css(portal, '--pcx', px.toFixed(1) + 'px');
-      css(portal, '--pcy', py.toFixed(1) + 'px');
-      const far = Math.max(Math.hypot(px, py), Math.hypot(st.width - px, py), Math.hypot(px, st.height - py), Math.hypot(st.width - px, st.height - py));
-      S = (far / r0) * 1.06;
-    }
+/* Tab into the hero after scrolling (its copy has faded out): jump back to the top so the focused control shows */
+if (!reduce) hero.addEventListener('focusin', e => {
+  if (!e.target.matches(':focus-visible')) return;
+  requestAnimationFrame(() => { if (scrollY > 0) scrollTo({ top: 0, behavior: 'instant' }); });
+});
+
+/* --- 2 · the build: two copies of the mock site, the top one wiped in by a scan line */
+const build = $('#build'), bStage = $('.stage', build), screen = $('#screen'), layers = $$('.layer', screen), items = $$('.stages li'), gNum = $('#gNum');
+const tpl = $('#mockTpl');
+layers.forEach(l => l.appendChild(tpl.content.cloneNode(true)));
+const setStage = (l, n) => {
+  if (l._n === n) return;
+  l._n = n;
+  l.dataset.stage = n;
+  l.toggleAttribute('data-laid', n >= 2 && n <= 5);
+  l.toggleAttribute('data-skin', n >= 3 && n <= 5);
+  l.toggleAttribute('data-motion', n >= 4 && n <= 5);
+};
+let active = -1, gShown = -1;
+const activate = a => {
+  if (a === active) return;
+  active = a;
+  bStage.dataset.active = a;
+  items.forEach((li, i) => {
+    li.classList.toggle('on', i + 1 === a);
+    li.classList.toggle('done', i + 1 < a);
+    if (i + 1 === a) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    $$('a', li).forEach(l => { if (i + 1 === a) l.removeAttribute('tabindex'); else l.tabIndex = -1; });
   });
+};
+/* the opening stage is set before the first layout, so the first frame has nothing to change and the page isn't laid out twice */
+if (!reduce) { setStage(layers[0], 0); setStage(layers[1], 1); activate(0); gShown = 0; gNum.textContent = 0; }
+const fitScreen = () => css(screen, '--k', (screen.clientWidth / 390).toFixed(4));
+if (reduce) {
+  layers.forEach(l => setStage(l, 6));
+  activate(6);
+  fitScreen();
+  addEventListener('resize', fitScreen);
+} else scene(build, p => {
+  css(bStage, '--dim', clamp(p / 0.02).toFixed(4));
+  css(bStage, '--in', smooth(clamp(p / 0.03)).toFixed(4));
+  const sp = clamp((p - 0.03) / 0.93) * 6;
+  const k = Math.min(6, Math.floor(sp)), t = sp - k;
+  const w = k >= 6 ? 0 : easeInOut(clamp(t / 0.45));
+  setStage(layers[0], k);
+  setStage(layers[1], Math.min(6, k + 1));
+  css(screen, '--wipe', w.toFixed(4));
+  activate(k >= 6 ? 6 : w > 0.5 ? k + 1 : k);
+  css(bStage, '--rail', (sp / 6).toFixed(4));
+  const g = Math.round(99 * easeOut(clamp((sp - 4.42) / 0.36)));
+  if (g !== gShown) { gShown = g; css(screen, '--g', g); gNum.textContent = g; }
+}, { measure: fitScreen });
 
-  /* Tab into the hero after scrolling (its copy has faded out): jump back to the top so the focused control shows */
-  if (!reduce) hero.addEventListener('focusin', e => {
-    if (!e.target.matches(':focus-visible')) return;
-    requestAnimationFrame(() => { if (scrollY > 0) scrollTo({ top: 0, behavior: 'instant' }); });
+/* --- 3 · work cards: each one tucks under the next */
+const cards = $$('.wcard'), cardIns = cards.map(c => $('.wcard-in', c)), work = $('#work');
+let cardTops = [], workTop = 0, workBottom = 0;
+function measureCards() {
+  cardTops = cards.map(c => parseFloat(getComputedStyle(c).top) || 0);
+  const r = work.getBoundingClientRect();
+  workTop = r.top + scrollY;
+  workBottom = r.bottom + scrollY;
+}
+const cardsNear = sy => !reduce && desk.matches && sy + vh > workTop && sy < workBottom;
+function coverCards(rects) {
+  cards.forEach((c, i) => {
+    let cov = 0;
+    if (i < cards.length - 1) cov = clamp(1 - (rects[i + 1].top - cardTops[i]) / (rects[i].height || 1));
+    const v = cov.toFixed(3);
+    if (cardIns[i]._c !== v) { cardIns[i]._c = v; css(cardIns[i], '--cov', v); }
   });
+}
 
-  /* --- 2 · the build: two copies of the mock site, the top one wiped in by a scan line */
-  const build = $('#build'), bStage = $('.stage', build), screen = $('#screen'), layers = $$('.layer', screen), items = $$('.stages li'), gNum = $('#gNum');
-  const tpl = $('#mockTpl');
-  layers.forEach(l => l.appendChild(tpl.content.cloneNode(true)));
-  const setStage = (l, n) => {
-    if (l._n === n) return;
-    l._n = n;
-    l.dataset.stage = n;
-    l.toggleAttribute('data-laid', n >= 2 && n <= 5);
-    l.toggleAttribute('data-skin', n >= 3 && n <= 5);
-    l.toggleAttribute('data-motion', n >= 4 && n <= 5);
-  };
-  let active = -1, gShown = -1;
-  const activate = a => {
-    if (a === active) return;
-    active = a;
-    bStage.dataset.active = a;
-    items.forEach((li, i) => {
-      li.classList.toggle('on', i + 1 === a);
-      li.classList.toggle('done', i + 1 < a);
-      if (i + 1 === a) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
-      $$('a', li).forEach(l => { if (i + 1 === a) l.removeAttribute('tabindex'); else l.tabIndex = -1; });
-    });
-  };
-  const fitScreen = () => css(screen, '--k', (screen.clientWidth / 390).toFixed(4));
-  if (reduce) {
-    layers.forEach(l => setStage(l, 6));
-    activate(6);
-    fitScreen();
-    addEventListener('resize', fitScreen);
-  } else scene(build, p => {
-    css(bStage, '--dim', clamp(p / 0.02).toFixed(4));
-    css(bStage, '--in', smooth(clamp(p / 0.03)).toFixed(4));
-    const sp = clamp((p - 0.03) / 0.93) * 6;
-    const k = Math.min(6, Math.floor(sp)), t = sp - k;
-    const w = k >= 6 ? 0 : easeInOut(clamp(t / 0.45));
-    setStage(layers[0], k);
-    setStage(layers[1], Math.min(6, k + 1));
-    css(screen, '--wipe', w.toFixed(4));
-    activate(k >= 6 ? 6 : w > 0.5 ? k + 1 : k);
-    css(bStage, '--rail', (sp / 6).toFixed(4));
-    const g = Math.round(99 * easeOut(clamp((sp - 4.42) / 0.36)));
-    if (g !== gShown) { gShown = g; css(screen, '--g', g); gNum.textContent = g; }
-  }, { measure: fitScreen });
-
-  /* --- 3 · work cards: each one tucks under the next */
-  const cards = $$('.wcard'), cardIns = cards.map(c => $('.wcard-in', c)), work = $('#work');
-  let cardTops = [], workTop = 0, workBottom = 0;
-  function measureCards() {
-    cardTops = cards.map(c => parseFloat(getComputedStyle(c).top) || 0);
-    const r = work.getBoundingClientRect();
-    workTop = r.top + scrollY;
-    workBottom = r.bottom + scrollY;
+/* --- 4 · workshop: vertical scroll drives a sideways reel (desktop) */
+const lab = $('#lab'), track = $('.lab-track');
+let labDist = 0;
+if (!reduce) scene(lab, p => { css(track, '--lx', desk.matches ? (p * labDist).toFixed(1) : '0'); }, {
+  measure() {
+    css(track, '--lx', '0');
+    if (!desk.matches) { lab.style.removeProperty('--lab-h'); labDist = 0; return; }
+    const tr = track.getBoundingClientRect(), lastR = track.lastElementChild.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    labDist = Math.max(0, lastR.right - tr.left + pad - innerWidth);
+    css(lab, '--lab-h', `calc(100svh + ${Math.round(labDist)}px)`);
   }
-  const cardsNear = sy => !reduce && desk.matches && sy + vh > workTop && sy < workBottom;
-  function coverCards(rects) {
-    cards.forEach((c, i) => {
-      let cov = 0;
-      if (i < cards.length - 1) cov = clamp(1 - (rects[i + 1].top - cardTops[i]) / (rects[i].height || 1));
-      const v = cov.toFixed(3);
-      if (cardIns[i]._c !== v) { cardIns[i]._c = v; css(cardIns[i], '--cov', v); }
-    });
-  }
+});
 
-  /* --- 4 · workshop: vertical scroll drives a sideways reel (desktop) */
-  const lab = $('#lab'), track = $('.lab-track');
-  let labDist = 0;
-  if (!reduce) scene(lab, p => { css(track, '--lx', desk.matches ? (p * labDist).toFixed(1) : '0'); }, {
-    measure() {
-      css(track, '--lx', '0');
-      if (!desk.matches) { lab.style.removeProperty('--lab-h'); labDist = 0; return; }
-      const tr = track.getBoundingClientRect(), lastR = track.lastElementChild.getBoundingClientRect();
-      const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
-      labDist = Math.max(0, lastR.right - tr.left + pad - innerWidth);
-      css(lab, '--lab-h', `calc(100svh + ${Math.round(labDist)}px)`);
-    }
+/* --- 5 · about: the statement fills in word by word as you read it */
+/* the range starts two screens early: while the statement is still out of sight it dims,
+   then it fills in word by word between 90% and 42% of the viewport. Far away it stays full strength. */
+if (words.length) scene(aboutH, p => {
+  const x = clamp((p - 0.696) / 0.304) * (words.length + 2);
+  words.forEach((w, i) => {
+    const o = p === 0 ? '' : (0.6 + 0.4 * clamp(x - i)).toFixed(3);
+    if (w._o !== o) { w._o = o; css(w, '--o', o); }
   });
+}, { range: true, start: 2, end: 0.42 });
 
-  /* --- 5 · about: the statement fills in word by word as you read it */
-  /* the range starts two screens early: while the statement is still out of sight it dims,
-     then it fills in word by word between 90% and 42% of the viewport. Far away it stays full strength. */
-  if (words.length) scene(aboutH, p => {
-    const x = clamp((p - 0.696) / 0.304) * (words.length + 2);
-    words.forEach((w, i) => {
-      const o = p === 0 ? '' : (0.6 + 0.4 * clamp(x - i)).toFixed(3);
-      if (w._o !== o) { w._o = o; css(w, '--o', o); }
-    });
-  }, { range: true, start: 2, end: 0.42 });
+/* --- 6 · contact: the full stop grows into the button */
+const cdot = $('.cdot'), contactH = $('#contact-h');
+const sizeDot = () => {
+  /* grows down and to the right into empty space, never wider than the room left on the line */
+  const room = innerWidth - cdot.getBoundingClientRect().left - 16;
+  const d = Math.round(clamp(Math.min(innerWidth * 0.11, room), 84, 150));
+  css(contactH, '--cdD', d + 'px');
+  css(contactH, '--cdx', (d / (cdot.offsetWidth || 20) - 1).toFixed(3));
+};
+if (reduce) { css(cdot, '--cd', '1'); sizeDot(); addEventListener('resize', sizeDot); }
+else scene(contactH, p => css(cdot, '--cd', easeOut(p).toFixed(4)), { range: true, start: 0.95, end: 0.5, measure: sizeDot });
 
-  /* --- 6 · contact: the full stop grows into the button */
-  const cdot = $('.cdot'), contactH = $('#contact-h');
-  const sizeDot = () => {
-    /* grows down and to the right into empty space, never wider than the room left on the line */
-    const room = innerWidth - cdot.getBoundingClientRect().left - 16;
-    const d = Math.round(clamp(Math.min(innerWidth * 0.11, room), 84, 150));
-    css(contactH, '--cdD', d + 'px');
-    css(contactH, '--cdx', (d / (cdot.offsetWidth || 20) - 1).toFixed(3));
-  };
-  if (reduce) { css(cdot, '--cd', '1'); sizeDot(); addEventListener('resize', sizeDot); }
-  else scene(contactH, p => css(cdot, '--cd', easeOut(p).toFixed(4)), { range: true, start: 0.95, end: 0.5, measure: sizeDot });
+/* --- 7 · phones: project pictures and the portrait open up like a cinema screen as they reach the middle */
+if (!reduce) $$('.wmedia, .portrait').forEach(m => scene(m, p => {
+  css(m, '--rv', desk.matches ? '1' : smooth(p).toFixed(4));
+}, { range: true, start: 1, end: 0.55 }));
 
-  /* --- 7 · phones: project pictures and the portrait open up like a cinema screen as they reach the middle */
-  if (!reduce) $$('.wmedia, .portrait').forEach(m => scene(m, p => {
-    css(m, '--rv', desk.matches ? '1' : smooth(p).toFixed(4));
-  }, { range: true, start: 1, end: 0.55 }));
+/* --- 8 · phones: the graveyard reel tilts and scales its cards as you swipe */
+const labStage = $('.stage', lab), lcards = $$('.lcard', track);
+let flowRaf = 0;
+const flow = () => {
+  flowRaf = 0;
+  if (desk.matches || reduce) return;
+  const tr = track.getBoundingClientRect(), mid = tr.left + tr.width / 2;
+  const rs = lcards.map(c => c.getBoundingClientRect());
+  lcards.forEach((c, i) => {
+    const off = clamp((rs[i].left + rs[i].width / 2 - mid) / tr.width, -1, 1);
+    css(c, '--off', off.toFixed(3));
+    css(c, '--aoff', Math.abs(off).toFixed(3));
+  });
+  css(labStage, '--lp', (track.scrollLeft / Math.max(1, track.scrollWidth - track.clientWidth)).toFixed(3));
+};
+const flowKick = () => { if (!flowRaf) flowRaf = requestAnimationFrame(flow); };
+track.addEventListener('scroll', flowKick, { passive: true });
+addEventListener('resize', flowKick);
 
-  /* --- 8 · phones: the graveyard reel tilts and scales its cards as you swipe */
-  const labStage = $('.stage', lab), lcards = $$('.lcard', track);
-  let flowRaf = 0;
-  const flow = () => {
-    flowRaf = 0;
-    if (desk.matches || reduce) return;
-    const tr = track.getBoundingClientRect(), mid = tr.left + tr.width / 2;
-    const rs = lcards.map(c => c.getBoundingClientRect());
-    lcards.forEach((c, i) => {
-      const off = clamp((rs[i].left + rs[i].width / 2 - mid) / tr.width, -1, 1);
-      css(c, '--off', off.toFixed(3));
-      css(c, '--aoff', Math.abs(off).toFixed(3));
-    });
-    css(labStage, '--lp', (track.scrollLeft / Math.max(1, track.scrollWidth - track.clientWidth)).toFixed(3));
-  };
-  const flowKick = () => { if (!flowRaf) flowRaf = requestAnimationFrame(flow); };
-  track.addEventListener('scroll', flowKick, { passive: true });
-  addEventListener('resize', flowKick);
-  flowKick();
+/* --- 9 · phones: a tiny vibration on taps (Android only; iPhones don't let websites vibrate) */
+if (!fine && !reduce && navigator.vibrate) $$('.btn, .cdot, .clink, #shipdot').forEach(el => el.addEventListener('click', () => navigator.vibrate(8)));
 
-  /* --- 9 · phones: a tiny vibration on taps (Android only; iPhones don't let websites vibrate) */
-  if (!fine && !reduce && navigator.vibrate) $$('.btn, .cdot, .clink, #shipdot').forEach(el => el.addEventListener('click', () => navigator.vibrate(8)));
+/* nav turns to night over dark scenes */
+let navDark = null;
+function navTheme(sy) {
+  const y = sy + 34;
+  let dark = darkZones.some(([a, b]) => y >= a && y < b);
+  if (!dark && heroScene && heroP > 0.72 && y < heroScene.top + heroScene.h) dark = true;
+  if (dark !== navDark) { navDark = dark; nav.classList.toggle('dark', dark); }
+}
 
-  /* nav turns to night over dark scenes */
-  let navDark = null;
-  function navTheme(sy) {
-    const y = sy + 34;
-    let dark = darkZones.some(([a, b]) => y >= a && y < b);
-    if (!dark && heroScene && heroP > 0.72 && y < heroScene.top + heroScene.h) dark = true;
-    if (dark !== navDark) { navDark = dark; nav.classList.toggle('dark', dark); }
-  }
+/* the phone's images load once the page is ready and the hero has painted (off the critical path,
+   so they never take bandwidth from the first screen), then get decoded ahead of time so no stage
+   pops in with a stall mid-scroll */
+const afterFirstPaint = cb => {
+  let done = false;
+  const go = () => { if (!done) { done = true; cb(); } };
+  try {
+    const po = new PerformanceObserver(l => { if (l.getEntriesByName('first-contentful-paint').length) { po.disconnect(); go(); } });
+    po.observe({ type: 'paint', buffered: true });
+  } catch (e) { go(); }
+  setTimeout(go, 3000);
+};
+addEventListener('load', () => afterFirstPaint(() => {
+  const fetchAll = () => $$('img[data-src]', screen).forEach(i => {
+    if (i.dataset.srcset) { i.srcset = i.dataset.srcset; i.removeAttribute('data-srcset'); }
+    i.src = i.dataset.src;
+    i.removeAttribute('data-src');
+    if (i.decode) i.decode().catch(() => {});
+  });
+  if ('requestIdleCallback' in window) requestIdleCallback(fetchAll, { timeout: 1500 }); else setTimeout(fetchAll, 400);
+}));
 
-  /* the phone's images load once the page is ready and the hero has painted (off the critical path,
-     so they never take bandwidth from the first screen), then get decoded ahead of time so no stage
-     pops in with a stall mid-scroll */
-  const afterFirstPaint = cb => {
-    let done = false;
-    const go = () => { if (!done) { done = true; cb(); } };
-    try {
-      const po = new PerformanceObserver(l => { if (l.getEntriesByName('first-contentful-paint').length) { po.disconnect(); go(); } });
-      po.observe({ type: 'paint', buffered: true });
-    } catch (e) { go(); }
-    setTimeout(go, 3000);
-  };
-  addEventListener('load', () => afterFirstPaint(() => {
-    const fetchAll = () => $$('img[data-src]', screen).forEach(i => {
-      i.src = i.dataset.src;
-      i.removeAttribute('data-src');
-      if (i.decode) i.decode().catch(() => {});
-    });
-    if ('requestIdleCallback' in window) requestIdleCallback(fetchAll, { timeout: 1500 }); else setTimeout(fetchAll, 400);
-  }));
+addEventListener('scroll', kick, { passive: true });
+let rt = 0;
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(measure, 150); });
+addEventListener('load', () => { if (vh) measure(); });
 
-  addEventListener('scroll', kick, { passive: true });
-  let rt = 0;
-  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(measure, 150); });
-  addEventListener('load', measure);
+/* --- one more thing: the same page, no design */
+const nakedBtn = $('#naked'), dress = $('#dress');
+const sheets = $$('style, link[rel="stylesheet"]');
+const setNaked = on => {
+  sheets.forEach(s => { s.disabled = on; });
+  $$('[data-deco]').forEach(el => { el.hidden = on; });
+  html.classList.toggle('naked', on);
+  dress.style.display = on ? 'block' : 'none';
+  if (on) { requestAnimationFrame(() => requestAnimationFrame(() => { scrollTo(0, 0); dress.focus({ preventScroll: true }); })); }
+  else { measure(); $('#omt').scrollIntoView({ block: 'center', behavior: 'instant' }); nakedBtn.focus({ preventScroll: true }); }
+};
+nakedBtn.addEventListener('click', () => setNaked(true));
+dress.addEventListener('click', () => setNaked(false));
+
+/* --- first measure
+   Once the browser has laid the page out by itself, just before it paints. Reading layout any
+   earlier would force an extra full layout while the page is still loading. */
+/* the portal dot is drawn once the real font is in, so it lands exactly on the period */
+const fontsDone = () => { html.classList.add('fonts-ok'); measure(); };
+const firstLayout = new ResizeObserver(() => {
+  firstLayout.disconnect();
+  flow();
   measure();
-  /* the portal dot is drawn once the real font is in, so it lands exactly on the period */
-  const fontsDone = () => { html.classList.add('fonts-ok'); measure(); };
   if (document.fonts && document.fonts.ready) Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 2500))]).then(fontsDone);
   else fontsDone();
+});
+firstLayout.observe(html);
+</script>
+<script type="module">
+/* the extras: none of them touch the scroll scenes, so they live in a script of their own */
+const reduce = document.documentElement.classList.contains('reduce');
+const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
+const css = (el, k, v) => el.style.setProperty(k, v);
 
-  /* ---------------------------------------------------------------- the dot follows the pointer */
-  if (fine && !reduce) {
-    const c = document.createElement('div');
-    c.className = 'cursor';
-    c.setAttribute('aria-hidden', 'true');
-    c.setAttribute('data-deco', '');
-    document.body.appendChild(c);
-    let x = -60, y = -60, cx = -60, cy = -60, craf = 0, shown = false;
-    const loop = () => {
-      cx += (x - cx) * 0.24;
-      cy += (y - cy) * 0.24;
-      css(c, '--cx', cx.toFixed(1) + 'px');
-      css(c, '--cy', cy.toFixed(1) + 'px');
-      craf = Math.abs(x - cx) + Math.abs(y - cy) > 0.3 ? requestAnimationFrame(loop) : 0;
-    };
-    addEventListener('pointermove', e => {
-      x = e.clientX; y = e.clientY;
-      if (!shown) { shown = true; cx = x; cy = y; c.classList.add('on'); }
-      if (!craf) craf = requestAnimationFrame(loop);
-    }, { passive: true });
-    document.documentElement.addEventListener('mouseleave', () => { shown = false; c.classList.remove('on'); });
-    addEventListener('pointerover', e => c.classList.toggle('big', !!(e.target.closest && e.target.closest('a, button'))));
+/* --- the dot follows the pointer */
+if (fine && !reduce) {
+  const c = document.createElement('div');
+  c.className = 'cursor';
+  c.setAttribute('aria-hidden', 'true');
+  c.setAttribute('data-deco', '');
+  document.body.appendChild(c);
+  let x = -60, y = -60, cx = -60, cy = -60, craf = 0, shown = false;
+  const loop = () => {
+    cx += (x - cx) * 0.24;
+    cy += (y - cy) * 0.24;
+    css(c, '--cx', cx.toFixed(1) + 'px');
+    css(c, '--cy', cy.toFixed(1) + 'px');
+    craf = Math.abs(x - cx) + Math.abs(y - cy) > 0.3 ? requestAnimationFrame(loop) : 0;
+  };
+  addEventListener('pointermove', e => {
+    x = e.clientX; y = e.clientY;
+    if (!shown) { shown = true; cx = x; cy = y; c.classList.add('on'); }
+    if (!craf) craf = requestAnimationFrame(loop);
+  }, { passive: true });
+  document.documentElement.addEventListener('mouseleave', () => { shown = false; c.classList.remove('on'); });
+  addEventListener('pointerover', e => c.classList.toggle('big', !!(e.target.closest && e.target.closest('a, button'))));
 
-    $$('.magnetic').forEach(el => {
-      el.addEventListener('pointermove', e => {
-        const r = el.getBoundingClientRect();
-        css(el, '--mx', ((e.clientX - r.left - r.width / 2) * 0.28).toFixed(1) + 'px');
-        css(el, '--my', ((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1) + 'px');
-      });
-      el.addEventListener('pointerleave', () => { css(el, '--mx', '0px'); css(el, '--my', '0px'); });
+  $$('.magnetic').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      css(el, '--mx', ((e.clientX - r.left - r.width / 2) * 0.28).toFixed(1) + 'px');
+      css(el, '--my', ((e.clientY - r.top - r.height / 2) * 0.28).toFixed(1) + 'px');
     });
-  }
+    el.addEventListener('pointerleave', () => { css(el, '--mx', '0px'); css(el, '--my', '0px'); });
+  });
+}
 
-  /* ---------------------------------------------------------------- live speed: this page, on this device */
-  let lcp = 0;
-  try {
-    new PerformanceObserver(list => { const es = list.getEntries(); if (es.length) lcp = es[es.length - 1].startTime; })
-      .observe({ type: 'largest-contentful-paint', buffered: true });
-  } catch (e) {}
-  addEventListener('load', () => setTimeout(() => {
-    let ms = lcp, what = 'main content';
-    if (!ms) { const f = performance.getEntriesByName('first-contentful-paint')[0]; if (f) { ms = f.startTime; what = 'first paint'; } }
-    if (!ms) { const n = performance.getEntriesByType('navigation')[0]; if (n) { ms = n.domContentLoadedEventEnd; what = 'page ready'; } }
-    if (!ms) return;
-    const s = (ms / 1000).toFixed(2) + ' s';
-    const speed = $('#speed');
-    speed.innerHTML = `This page: ${what} in <b>${s}</b> on your device`;
-    speed.classList.add('in');
-    $('#vsNum').textContent = s;
-    $('#vsNote').textContent = `time to ${what}, measured live`;
-  }, 700));
+/* --- live speed: this page, on this device */
+let lcp = 0;
+try {
+  new PerformanceObserver(list => { const es = list.getEntries(); if (es.length) lcp = es[es.length - 1].startTime; })
+    .observe({ type: 'largest-contentful-paint', buffered: true });
+} catch (e) {}
+addEventListener('load', () => setTimeout(() => {
+  let ms = lcp, what = 'main content';
+  if (!ms) { const f = performance.getEntriesByName('first-contentful-paint')[0]; if (f) { ms = f.startTime; what = 'first paint'; } }
+  if (!ms) { const n = performance.getEntriesByType('navigation')[0]; if (n) { ms = n.domContentLoadedEventEnd; what = 'page ready'; } }
+  if (!ms) return;
+  const s = (ms / 1000).toFixed(2) + ' s';
+  const speed = $('#speed');
+  speed.replaceChildren(`This page: ${what} in `, Object.assign(document.createElement('b'), { textContent: s }), ' on your device');
+  speed.classList.add('in');
+  $('#vsNum').textContent = s;
+  $('#vsNote').textContent = `time to ${what}, measured live`;
+}, 700));
 
-  /* ---------------------------------------------------------------- easter egg: click the period */
-  const shipdot = $('#shipdot');
-  const eggLines = [
-    "You clicked the period. Most people don't. I already like you.",
-    "It's punctuation, not a button. But sure, keep going.",
-    'This site ships. The joke, apparently, does not.',
-    'Achievement unlocked: Professional Full-Stop Clicker.',
-    "Okay, show's over. But my inbox isn't, so let's build something."
-  ];
-  let toast = null, hideT = 0;
-  const say = msg => {
-    if (!toast) { toast = document.createElement('div'); toast.className = 'egg-toast'; toast.setAttribute('role', 'status'); document.body.appendChild(toast); }
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(hideT);
-    hideT = setTimeout(() => toast.classList.remove('show'), 3400);
-  };
-  let eggN = 0;
-  shipdot.addEventListener('click', e => {
-    e.preventDefault();
-    shipdot.classList.remove('pop'); void shipdot.offsetWidth; shipdot.classList.add('pop');
-    if (!reduce && shipdot.animate) {
-      const r = shipdot.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      const colors = ['#5B7CA6', '#AAC6E5', '#DCE8F5', '#3F6390', '#2A3542'];
-      for (let i = 0; i < 14; i++) {
-        const b = document.createElement('span');
-        b.className = 'egg-bit';
-        b.style.background = colors[i % colors.length];
-        b.style.left = cx + 'px'; b.style.top = cy + 'px';
-        document.body.appendChild(b);
-        const a = Math.random() * Math.PI * 2, d = 45 + Math.random() * 80;
-        b.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
-          { transform: `translate(calc(-50% + ${Math.cos(a) * d}px),calc(-50% + ${Math.sin(a) * d - 30}px)) scale(0)`, opacity: 0 }],
-          { duration: 650 + Math.random() * 350, easing: 'cubic-bezier(.2,.7,.2,1)' });
-        setTimeout(() => b.remove(), 1050);
-      }
+/* --- easter egg: click the period */
+const shipdot = $('#shipdot');
+const eggLines = [
+  "You clicked the period. Most people don't. I already like you.",
+  "It's punctuation, not a button. But sure, keep going.",
+  'This site ships. The joke, apparently, does not.',
+  'Achievement unlocked: Professional Full-Stop Clicker.',
+  "Okay, show's over. But my inbox isn't, so let's build something."
+];
+let toast = null, hideT = 0;
+const say = msg => {
+  if (!toast) { toast = document.createElement('div'); toast.className = 'egg-toast'; toast.setAttribute('role', 'status'); document.body.appendChild(toast); }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(hideT);
+  hideT = setTimeout(() => toast.classList.remove('show'), 3400);
+};
+let eggN = 0;
+shipdot.addEventListener('click', e => {
+  e.preventDefault();
+  shipdot.classList.remove('pop'); void shipdot.offsetWidth; shipdot.classList.add('pop');
+  if (!reduce && shipdot.animate) {
+    const r = shipdot.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const colors = ['#5B7CA6', '#AAC6E5', '#DCE8F5', '#3F6390', '#2A3542'];
+    for (let i = 0; i < 14; i++) {
+      const b = document.createElement('span');
+      b.className = 'egg-bit';
+      b.style.background = colors[i % colors.length];
+      b.style.left = cx + 'px'; b.style.top = cy + 'px';
+      document.body.appendChild(b);
+      const a = Math.random() * Math.PI * 2, d = 45 + Math.random() * 80;
+      b.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${Math.cos(a) * d}px),calc(-50% + ${Math.sin(a) * d - 30}px)) scale(0)`, opacity: 0 }],
+        { duration: 650 + Math.random() * 350, easing: 'cubic-bezier(.2,.7,.2,1)' });
+      setTimeout(() => b.remove(), 1050);
     }
-    say(eggLines[Math.min(eggN++, eggLines.length - 1)]);
-    if (eggN === eggLines.length) confetti(); /* the fifth tap is the finale (and the phone version of "surprise") */
-  });
+  }
+  say(eggLines[Math.min(eggN++, eggLines.length - 1)]);
+  if (eggN === eggLines.length) confetti(); /* the fifth tap is the finale (and the phone version of "surprise") */
+});
 
-  /* ---------------------------------------------------------------- type "surprise": a gust of confetti
-     A canvas with inline styles (so it still works with the design switched off). Pieces enter from the
-     left on a gust, flutter and tumble as they cross, drift down a little, then fade. */
-  const confetti = () => {
-    if (reduce) { say('Surprise. (Confetti is off because your device asks for less motion.)'); return; }
-    const cv = document.createElement('canvas');
-    cv.setAttribute('aria-hidden', 'true');
-    cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:10000';
-    document.body.appendChild(cv);
-    const W = innerWidth, H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-    const ctx = cv.getContext('2d');
-    ctx.scale(dpr, dpr);
-    const colors = ['#5B7CA6', '#AAC6E5', '#DCE8F5', '#3F6390', '#F2ECE1', '#E9C46A', '#F2B5C4'];
-    const parts = Array.from({ length: Math.round(clamp(W / 6, 90, 240)) }, () => ({
-      x: -20 - Math.random() * W * 0.45,
-      y: H * (0.05 + Math.random() * 0.8),
-      vx: 8 + Math.random() * 10,
-      vy: -2.2 + Math.random() * 2.6,
-      r: 3 + Math.random() * 5,
-      rot: Math.random() * 6.283, vr: (Math.random() - 0.5) * 0.28,
-      ph: Math.random() * 6.283, fl: 0.05 + Math.random() * 0.07,
-      shape: Math.random() < 0.4 ? 0 : Math.random() < 0.75 ? 1 : 2,
-      color: colors[(Math.random() * colors.length) | 0],
-      delay: Math.random() * 22
-    }));
-    let t = 0, last = performance.now();
-    const step = now => {
-      const dt = Math.min(2.5, (now - last) / 16.7);
-      last = now; t += dt;
-      ctx.clearRect(0, 0, W, H);
-      ctx.globalAlpha = clamp((290 - t) / 50);
-      let alive = 0;
-      for (const q of parts) {
-        if (t < q.delay) { alive++; continue; }
-        q.vx *= Math.pow(0.993, dt);
-        q.vy += 0.035 * dt;
-        q.x += (q.vx + Math.sin(t * q.fl + q.ph) * 1.4) * dt;
-        q.y += (q.vy + Math.cos(t * q.fl * 0.8 + q.ph) * 0.7) * dt;
-        q.rot += q.vr * dt;
-        if (q.x > W + 40 || q.y > H + 40) continue;
-        alive++;
-        ctx.save();
-        ctx.translate(q.x, q.y);
-        ctx.rotate(q.rot);
-        ctx.fillStyle = ctx.strokeStyle = q.color;
-        if (q.shape === 0) { ctx.beginPath(); ctx.arc(0, 0, q.r * 0.7, 0, 6.283); ctx.fill(); }
-        else if (q.shape === 1) { const w = q.r * 1.9, h = Math.max(0.8, q.r * 1.15 * Math.abs(Math.cos(t * q.fl * 1.6 + q.ph))); ctx.fillRect(-w / 2, -h / 2, w, h); }
-        else { ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, q.r * 1.3, 0.3, 2.5); ctx.stroke(); }
-        ctx.restore();
-      }
-      if (alive && t < 290) requestAnimationFrame(step); else cv.remove();
-    };
-    requestAnimationFrame(step);
+/* --- type "surprise": a gust of confetti
+   A canvas with inline styles (so it still works with the design switched off). Pieces enter from the
+   left on a gust, flutter and tumble as they cross, drift down a little, then fade. */
+const confetti = () => {
+  if (reduce) { say('Surprise. (Confetti is off because your device asks for less motion.)'); return; }
+  const cv = document.createElement('canvas');
+  cv.setAttribute('aria-hidden', 'true');
+  cv.style.cssText = 'position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:10000';
+  document.body.appendChild(cv);
+  const W = innerWidth, H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const colors = ['#5B7CA6', '#AAC6E5', '#DCE8F5', '#3F6390', '#F2ECE1', '#E9C46A', '#F2B5C4'];
+  const parts = Array.from({ length: Math.round(clamp(W / 6, 90, 240)) }, () => ({
+    x: -20 - Math.random() * W * 0.45,
+    y: H * (0.05 + Math.random() * 0.8),
+    vx: 8 + Math.random() * 10,
+    vy: -2.2 + Math.random() * 2.6,
+    r: 3 + Math.random() * 5,
+    rot: Math.random() * 6.283, vr: (Math.random() - 0.5) * 0.28,
+    ph: Math.random() * 6.283, fl: 0.05 + Math.random() * 0.07,
+    shape: Math.random() < 0.4 ? 0 : Math.random() < 0.75 ? 1 : 2,
+    color: colors[(Math.random() * colors.length) | 0],
+    delay: Math.random() * 22
+  }));
+  let t = 0, last = performance.now();
+  const step = now => {
+    const dt = Math.min(2.5, (now - last) / 16.7);
+    last = now; t += dt;
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = clamp((290 - t) / 50);
+    let alive = 0;
+    for (const q of parts) {
+      if (t < q.delay) { alive++; continue; }
+      q.vx *= Math.pow(0.993, dt);
+      q.vy += 0.035 * dt;
+      q.x += (q.vx + Math.sin(t * q.fl + q.ph) * 1.4) * dt;
+      q.y += (q.vy + Math.cos(t * q.fl * 0.8 + q.ph) * 0.7) * dt;
+      q.rot += q.vr * dt;
+      if (q.x > W + 40 || q.y > H + 40) continue;
+      alive++;
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.rotate(q.rot);
+      ctx.fillStyle = ctx.strokeStyle = q.color;
+      if (q.shape === 0) { ctx.beginPath(); ctx.arc(0, 0, q.r * 0.7, 0, 6.283); ctx.fill(); }
+      else if (q.shape === 1) { const w = q.r * 1.9, h = Math.max(0.8, q.r * 1.15 * Math.abs(Math.cos(t * q.fl * 1.6 + q.ph))); ctx.fillRect(-w / 2, -h / 2, w, h); }
+      else { ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(0, 0, q.r * 1.3, 0.3, 2.5); ctx.stroke(); }
+      ctx.restore();
+    }
+    if (alive && t < 290) requestAnimationFrame(step); else cv.remove();
   };
-  let typed = '';
-  addEventListener('keydown', e => {
-    if (e.metaKey || e.ctrlKey || e.altKey || !e.key || e.key.length !== 1) return;
-    const el = e.target;
-    if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
-    typed = (typed + e.key.toLowerCase()).slice(-8);
-    if (typed === 'surprise') { typed = ''; confetti(); }
-  });
-
-  /* ---------------------------------------------------------------- one more thing: the same page, no design */
-  const nakedBtn = $('#naked'), dress = $('#dress');
-  const sheets = $$('style, link[rel="stylesheet"]');
-  const setNaked = on => {
-    sheets.forEach(s => { s.disabled = on; });
-    $$('[data-deco]').forEach(el => { el.hidden = on; });
-    html.classList.toggle('naked', on);
-    dress.style.display = on ? 'block' : 'none';
-    if (on) { requestAnimationFrame(() => requestAnimationFrame(() => { scrollTo(0, 0); dress.focus({ preventScroll: true }); })); }
-    else { measure(); $('#omt').scrollIntoView({ block: 'center', behavior: 'instant' }); nakedBtn.focus({ preventScroll: true }); }
-  };
-  nakedBtn.addEventListener('click', () => setNaked(true));
-  dress.addEventListener('click', () => setNaked(false));
-})();
+  requestAnimationFrame(step);
+};
+let typed = '';
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || !e.key || e.key.length !== 1) return;
+  const el = e.target;
+  if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+  typed = (typed + e.key.toLowerCase()).slice(-8);
+  if (typed === 'surprise') { typed = ''; confetti(); }
+});
 </script>
 </body>
 </html>

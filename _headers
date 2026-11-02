@@ -1,17 +1,19 @@
 # Cloudflare reads this file; other hosts ignore it.
+# Files in /assets keep for 30 days, so a changed image needs a new file name (or a new ?v=) to reach visitors sooner.
 /assets/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=2592000
 /assets/fonts/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-# Security headers for every page and file. The CSP only controls framing, <base> and plugins,
-# so the inline styles and scripts the pages rely on keep working.
+# Security headers for every page and file. Scripts only run from this site or from an inline <script>
+# whose hash is listed in the CSP (tools/sync.mjs writes that list), and Trusted Types stops scripts from
+# turning strings into HTML: together they close the usual doors for cross-site scripting.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: script-src 'self' 'unsafe-inline' 'sha256-1hql+bLHAwM4ARX/T658ZbkRg8834cfLW48/LB6qvGg=' 'sha256-8SRrupZO+lg22tN/pP+1284/rgV99M1nwtTXIdurKbo=' 'sha256-NI/58xZ6WlDrA8grC1yZp8bp3F4dLqiKKX4E2UlS8iA=' 'sha256-ROzHD5ADQwlrgytpBV+WD9bN8HoMqOpa2+D4ooZBNfc=' 'sha256-RbG71P1ugOcyrfWMXcXXT9Qr5uLtTlVhgtC3wSr3mz0=' 'sha256-eC4D8bUkZ4YzBhOBdym89HJza3V86Gg9If2mC0qdD0w=' 'sha256-kWMrjJ7/qXru7ReaNWvnPxHFIPFpy15r9pESdT588AU=' 'sha256-r+b2Y2oZ4jgeGAkLyATrW6PSAMUAOynyOvaJCOaBQmA=' 'sha256-r9Z860LJ4iR/b+WJGX9OTW2CnStD7eiDXP4izU+eScU=' 'sha256-ryuEAGhO+UznoBdKc6NxW/BPTUXMHT0P1K5B+JT71u8=' 'sha256-z3PY5rIn0WW6GLAQfWTFaoJZtEkRZT08Za3MlBLfMjc='; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; require-trusted-types-for 'script'
   Cross-Origin-Opener-Policy: same-origin
-  Strict-Transport-Security: max-age=31536000
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
