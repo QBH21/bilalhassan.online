@@ -67,6 +67,7 @@ Add `?reduced=1` to the address to see the version people get when their device 
 - **Colours:** the CSS variables in `:root` at the top of the `<style>` block. The service pages have the same variables at the top of `assets/service.css`.
 - **Service pages:** each page is plain HTML, so edit the text in place. The list of services on the home page and the "Other things I do" links at the bottom of every service page should stay in sync if you add or rename one, and so should `sitemap.xml`.
 - **Breadcrumbs:** every service page and the hub has a small breadcrumb trail in the footer (Home > Services > page), and the same trail in its structured data. Keep the two matching if you rename a page.
+- **Fonts:** all three use `font-display: optional` with preloads and size-matched stand-ins (Arial, Arimo, Liberation Sans or Roboto). If a font arrives late on a slow first visit, the stand-in stays for that page instead of swapping, so text never jumps. Google's Linux test machines have no Arial, which is why the earlier `swap` setting cost CLS there.
 - **After changing `service.css` or `service.js`:** files in `assets/` are cached for a week, so bump the `?v=1` at the end of their links (in all seven service pages) to `?v=2` and so on. Otherwise returning visitors keep the old file.
 
 ## How the effects work
