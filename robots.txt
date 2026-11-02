@@ -10,11 +10,19 @@ User-agent: ChatGPT-User
 Allow: /
 User-agent: PerplexityBot
 Allow: /
+User-agent: Perplexity-User
+Allow: /
 User-agent: Google-Extended
 Allow: /
 User-agent: ClaudeBot
 Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: Claude-User
+Allow: /
 User-agent: Applebot-Extended
 Allow: /
+
+# A plain-text summary for language models: https://bilalhassan.online/llms.txt
 
 Sitemap: https://bilalhassan.online/sitemap.xml

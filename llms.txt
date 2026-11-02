@@ -1,0 +1,78 @@
+# Bilal Hassan
+
+> Bilal Hassan (bilal builds) is a freelance full-stack web developer in Islamabad, Pakistan. He builds fast, mobile-first websites, online stores and web apps for businesses all over the world.
+
+- Website: https://bilalhassan.online/
+- Email: contact@bilalhassan.online
+- Location: Islamabad, Pakistan
+- Works in: English and Urdu
+- Status: available for work
+
+## Services
+
+All seven are listed at https://bilalhassan.online/services/ and each has its own page:
+
+- [Websites](https://bilalhassan.online/services/websites/): custom websites designed and built by hand for brands and small businesses, from the first sketch to launch, including fast single landing pages. Fast on phones, set up for Google from day one, and the code is the client's when it's done.
+- [Web apps](https://bilalhassan.online/services/web-apps/): dashboards, booking systems and internal tools, built around how a team already works.
+- [Mobile apps](https://bilalhassan.online/services/mobile-apps/): iPhone and Android apps built with React Native and Expo from one codebase, and published to the App Store and Google Play for the client.
+- [SEO](https://bilalhassan.online/services/seo/): fast pages, clear titles, structured data and the technical fixes most small-business websites skip. Free Lighthouse check on request.
+- [GEO](https://bilalhassan.online/services/geo/): generative engine optimization, which makes a business easy for AI assistants like ChatGPT, Gemini and Perplexity to read, understand and quote correctly.
+- [AI automations](https://bilalhassan.online/services/ai-automations/): automations that sort enquiries, draft replies and move data between the tools a business already uses, with a person approving anything customers see.
+- [API integrations](https://bilalhassan.online/services/api-integrations/): connecting a website or app to messaging, AI models, maps and databases, with keys kept secret and fallbacks built in.
+
+How a project runs: before work starts, Bilal and the client agree on the pages, the timeline and the price. While he builds, he sends previews to test on the client's own phone. When it's right, he puts it live, hands everything over, and stays around for fixes.
+
+Pricing: each project gets a price before any work starts, and it only changes if both sides agree to change what's being built.
+
+Free check: he will test an existing website with Google's Lighthouse for free and say what he'd fix first. Email contact@bilalhassan.online with the site's address.
+
+## Work
+
+- [Kavoor](https://kavoor.store): a small-batch perfume store with bundles, gift bags, live promotions and WhatsApp checkout. Designed and built solo with Next.js, Express, MySQL and Cloudinary. Scored 99 on Google's Lighthouse test for phones. Live.
+- [Momin by Ahmed](https://mominbyahmed.com): a fragrance store built end to end, with collections for him, her and unisex, plus a cart, customer accounts and reviews. Designed and built solo. Live.
+- Invoice & Rental App: an internal web app for a family business. It produces invoice and rental slip PDFs and monthly spreadsheets, and reads photos of hand-filled rental slips with Gemini. Next.js, Supabase, Firebase Auth. Private; the screenshots on the site use sample data with personal details blurred.
+- [Horizon](https://github.com/QBH21/Career-Advisor-Platform): a web platform that gives career advisors a structured way to guide students. Full-stack, JavaScript, in active development.
+
+## FoodBook
+
+- Bilal is a co-founder of [FoodBook](https://www.food-book.app), a restaurant guide for Islamabad: diners write the reviews, and it shows which bank cards get a discount at each restaurant. Free on iPhone and Android. His role is on the business side; the site does not claim he built the app.
+
+## Open source
+
+- [Hearth](https://github.com/Qureshi-DH/hearth): a self-hosted family safety app. In November 2026 its owner merged [Bilal's fix](https://github.com/Qureshi-DH/hearth/pull/32) for three bugs in its iPhone map.
+
+## Side projects
+
+Apps built outside client work. None of them went public.
+
+- Masjid Pro (iOS and Android): each masjid's own salah times, kept current by its moderators. Expo, React Native, Firebase, TypeScript.
+- Labayik Allah (iOS and Android): a step-by-step Hajj companion that covers all three types of Hajj. Expo, React Native.
+- Eterna (mobile and web): an Islamic calendar with Hijri and Gregorian dates side by side, plus goals to track through the month. Expo, Next.js, Turborepo.
+- WildScan (web): photograph an animal in the wild, Gemini names the species, and the catch climbs a global leaderboard. Next.js, Gemini API.
+- Family Tracker (iOS and Android): a location tracker for family and friends that runs on a Mac mini at home. Expo, Node, Postgres, MQTT, Docker.
+- Rebus Party (iOS and Android): a party game of rebus puzzles. Expo, React Native.
+
+## Field notes
+
+Between 21 and 31 October 2026, Bilal tested 465 small-business websites across 12 countries with Google Lighthouse's mobile test (a simulated mid-range phone on a slow 4G connection):
+
+- 8.9 s: median time for the main content to appear on a phone
+- 94%: share that scored under 90 on Google's mobile speed test
+- 3.3 MB: median homepage size
+
+He ran the tests with his own audit pipeline, which pulls business listings from OpenStreetMap, runs Lighthouse on each website and writes up the results.
+
+## Tools
+
+HTML, CSS, JavaScript, TypeScript, React, Next.js, Node.js, Express, Expo and React Native, Firebase, Supabase, MySQL, PostgreSQL, Core Web Vitals, on-page SEO, GEO, structured data, Git and GitHub.
+
+## About
+
+Bilal is doing his A-Levels at IVYAN in Islamabad alongside freelance work. Before that he did his IGCSEs at Beaconhouse Margalla.
+
+## Contact
+
+- [Email](mailto:contact@bilalhassan.online): contact@bilalhassan.online
+- [LinkedIn](https://www.linkedin.com/in/bilal-hassan-363a15371/)
+- [GitHub](https://github.com/QBH21): QBH21
+- [Instagram](https://www.instagram.com/bilal_builds_): @bilal_builds_
